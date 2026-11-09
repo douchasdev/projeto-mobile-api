@@ -12,11 +12,10 @@ import { CreateActivityDto } from "./dto/create-activity.dto.js";
 import { UpdateActivityDto } from "./dto/update-activity.dto.js";
 import { UpdateStatusDto } from "./dto/update-status.dto.js";
 
-// Campos que serão retornados nas respostas da API.
-// Não expomos e-mail ou senha do autor.
 const activitySelect = {
   id: true,
   title: true,
+  description: true,
   scheduledAt: true,
   location: true,
   completed: true,
@@ -31,9 +30,9 @@ const activitySelect = {
   },
 } as const;
 
-// Campos permitidos em uma atualização.
 type ActivityChanges = {
   title?: string;
+  description?: string | null;
   scheduledAt?: Date;
   location?: string;
   completed?: boolean;
@@ -55,7 +54,6 @@ export class ActivitiesService {
   ) {}
 
   // GET /activities
-  // Consulta todas as atividades cadastradas.
   async findAll() {
     return this.prisma.activity.findMany({
       orderBy: [
@@ -67,7 +65,6 @@ export class ActivitiesService {
   }
 
   // GET /activities/my
-  // Consulta as atividades do usuário autenticado.
   async findMine(userId: string) {
     return this.prisma.activity.findMany({
       where: {
@@ -82,7 +79,6 @@ export class ActivitiesService {
   }
 
   // POST /activities
-  // Cria uma atividade vinculada ao usuário autenticado.
   async create(
     userId: string,
     dto: CreateActivityDto,
@@ -90,6 +86,7 @@ export class ActivitiesService {
     return this.prisma.activity.create({
       data: {
         title: dto.title,
+        description: dto.description?.trim() || null,
         scheduledAt: new Date(dto.scheduledAt),
         location: dto.location,
         completed: false,
@@ -103,7 +100,8 @@ export class ActivitiesService {
     });
   }
 
-  // Confere se a atividade existe e pertence ao usuário.
+  // Verifica se a atividade existe e pertence
+  // ao usuário autenticado.
   private async ensureOwnership(
     activityId: string,
     userId: string,
@@ -132,8 +130,6 @@ export class ActivitiesService {
     }
   }
 
-  // Aplica uma atualização somente se a atividade
-  // continuar pertencendo ao usuário.
   private async updateOwnedActivity(
     activityId: string,
     userId: string,
@@ -162,7 +158,6 @@ export class ActivitiesService {
   }
 
   // PATCH /activities/:id
-  // Edita os dados permitidos de uma atividade própria.
   async update(
     activityId: string,
     userId: string,
@@ -174,13 +169,18 @@ export class ActivitiesService {
       changes.title = dto.title;
     }
 
-    if (dto.location !== undefined) {
-      changes.location = dto.location;
+    if (dto.description !== undefined) {
+      changes.description =
+        dto.description.trim() || null;
     }
 
     if (dto.scheduledAt !== undefined) {
       changes.scheduledAt =
         new Date(dto.scheduledAt);
+    }
+
+    if (dto.location !== undefined) {
+      changes.location = dto.location;
     }
 
     if (Object.keys(changes).length === 0) {
@@ -197,7 +197,6 @@ export class ActivitiesService {
   }
 
   // PATCH /activities/:id/status
-  // Altera o status de uma atividade própria.
   async updateStatus(
     activityId: string,
     userId: string,
@@ -213,7 +212,6 @@ export class ActivitiesService {
   }
 
   // DELETE /activities/:id
-  // Exclui uma atividade própria.
   async remove(
     activityId: string,
     userId: string,
@@ -223,8 +221,6 @@ export class ActivitiesService {
       userId,
     );
 
-    // A exclusão também verifica o proprietário,
-    // evitando remover registros de outros usuários.
     const result =
       await this.prisma.activity.deleteMany({
         where: {

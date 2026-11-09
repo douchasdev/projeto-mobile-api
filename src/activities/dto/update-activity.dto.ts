@@ -1,5 +1,6 @@
 
 import { Transform } from "class-transformer";
+
 import {
   IsISO8601,
   IsNotEmpty,
@@ -18,6 +19,11 @@ export class UpdateActivityDto {
   @IsNotEmpty()
   @MaxLength(120)
   title?: string;
+
+  @ValidateIf((_, value) => value !== undefined)
+  @IsString()
+  @MaxLength(1000)
+  description?: string;
 
   @ValidateIf((_, value) => value !== undefined)
   @IsString()

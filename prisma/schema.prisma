@@ -9,13 +9,12 @@ datasource db {
 }
 
 model User {
-  id           String @id @default(uuid()) @db.Char(36)
-  name         String @db.VarChar(120)
-  email        String @unique @db.VarChar(191)
-  passwordHash String @db.VarChar(255)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid()) @db.Char(36)
+  name         String   @db.VarChar(120)
+  email        String   @unique @db.VarChar(191)
+  passwordHash String   @db.VarChar(255)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   activities Activity[]
 }
@@ -23,11 +22,11 @@ model User {
 model Activity {
   id          String   @id @default(uuid()) @db.Char(36)
   title       String   @db.VarChar(120)
+  description String?  @db.VarChar(1000)
   scheduledAt DateTime @db.DateTime(3)
   location    String   @db.VarChar(255)
   completed   Boolean  @default(false)
-
-  ownerId String @db.Char(36)
+  ownerId     String   @db.Char(36)
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
 
