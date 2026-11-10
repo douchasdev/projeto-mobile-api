@@ -17,6 +17,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   activities Activity[]
+  interests  ActivityInterest[]
 }
 
 model Activity {
@@ -28,11 +29,24 @@ model Activity {
   completed   Boolean  @default(false)
   ownerId     String   @db.Char(36)
 
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  owner     User               @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  interests ActivityInterest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([ownerId])
   @@index([scheduledAt])
+}
+
+model ActivityInterest {
+  activityId String   @db.Char(36)
+  userId     String   @db.Char(36)
+  createdAt  DateTime @default(now())
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([activityId, userId])
+  @@index([userId])
 }

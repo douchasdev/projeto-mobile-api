@@ -34,8 +34,10 @@ export class ActivitiesController {
     private readonly activitiesService: ActivitiesService,
   ) {}
 
-  // Recupera o ID do usuário autenticado.
-  // Esse valor é definido pelo JwtAuthGuard.
+  // ==================================================
+  // USUÁRIO AUTENTICADO
+  // ==================================================
+
   private getUserId(
     request: AuthenticatedRequest,
   ): string {
@@ -48,13 +50,25 @@ export class ActivitiesController {
     return request.user.id;
   }
 
+  // ==================================================
   // GET /activities
+  // ==================================================
+
   @Get()
-  findAll() {
-    return this.activitiesService.findAll();
+  findAll(
+    @Req() request: AuthenticatedRequest,
+  ) {
+    const userId = this.getUserId(request);
+
+    return this.activitiesService.findAll(
+      userId,
+    );
   }
 
+  // ==================================================
   // GET /activities/my
+  // ==================================================
+
   @Get("my")
   findMine(
     @Req() request: AuthenticatedRequest,
@@ -66,7 +80,10 @@ export class ActivitiesController {
     );
   }
 
+  // ==================================================
   // POST /activities
+  // ==================================================
+
   @Post()
   create(
     @Req() request: AuthenticatedRequest,
@@ -80,7 +97,10 @@ export class ActivitiesController {
     );
   }
 
+  // ==================================================
   // PATCH /activities/:id
+  // ==================================================
+
   @Patch(":id")
   update(
     @Param("id", new ParseUUIDPipe()) id: string,
@@ -96,7 +116,10 @@ export class ActivitiesController {
     );
   }
 
+  // ==================================================
   // PATCH /activities/:id/status
+  // ==================================================
+
   @Patch(":id/status")
   updateStatus(
     @Param("id", new ParseUUIDPipe()) id: string,
@@ -112,7 +135,10 @@ export class ActivitiesController {
     );
   }
 
+  // ==================================================
   // DELETE /activities/:id
+  // ==================================================
+
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
@@ -122,6 +148,42 @@ export class ActivitiesController {
     const userId = this.getUserId(request);
 
     await this.activitiesService.remove(
+      id,
+      userId,
+    );
+  }
+
+  // ==================================================
+  // POST /activities/:id/interests
+  // ==================================================
+
+  @Post(":id/interests")
+  @HttpCode(HttpStatus.OK)
+  addInterest(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    const userId = this.getUserId(request);
+
+    return this.activitiesService.addInterest(
+      id,
+      userId,
+    );
+  }
+
+  // ==================================================
+  // DELETE /activities/:id/interests/me
+  // ==================================================
+
+  @Delete(":id/interests/me")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeInterest(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<void> {
+    const userId = this.getUserId(request);
+
+    await this.activitiesService.removeInterest(
       id,
       userId,
     );
